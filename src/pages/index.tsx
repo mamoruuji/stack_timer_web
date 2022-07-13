@@ -1,9 +1,42 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
+import React, {useState} from 'react'
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import styles from '../styles/Home.module.css'
 
+
+// ドラッグ&ドロップした要素を入れ替える
+const reorder = (list: { id: string; content: string }[], startIndex: any, endIndex: any) => {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+
+  return result;
+};
+
 const Home: NextPage = () => {
+
+  const [items, setItems] = useState([
+    { id: "item-0", content: "item 0" },
+    { id: "item-1", content: "item 1" },
+    { id: "item-2", content: "item 2" },
+    { id: "item-3", content: "item 3" },
+  ])
+
+  const onDragEnd = (result: any) => {
+    if(!result.destination){
+      return
+    }
+
+    let movedItems = reorder(
+      items, // 順序を入れ替えたい配列
+      result.source.index, // 元の配列の位置
+      result.destination.index, // 移動先の配列の位置
+    )
+    setItems(movedItems)
+  }
+
   return (
     <div className={styles.container}>
       <Head>
@@ -50,6 +83,28 @@ const Home: NextPage = () => {
               Instantly deploy your Next.js site to a public URL with Vercel.
             </p>
           </a>
+        </div>
+        <div>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="droppable">
+              {(provided, snapshot) => (
+                <div {...provided.droppableProps} ref={provided.innerRef}>
+                  {items.map((item, index) => (
+                    <Draggable key={item.id} draggableId={item.id} index={index}>
+                      {(provided, snapshot) =>
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        {item.content}
+                      </div>}
+                    </Draggable>
+                  ))}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         </div>
       </main>
 
