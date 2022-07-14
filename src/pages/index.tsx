@@ -1,3 +1,6 @@
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
 import type { NextPage } from 'next'
 import dynamic from 'next/dynamic';
 import Head from 'next/head'
@@ -40,12 +43,24 @@ type item = { id: number, content: string }
 
 // ドラッグ&ドロップした要素を入れ替える
 const reorder = (list: item[], startIndex: number, endIndex: number) => {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
+  const result = Array.from(list)
+  const [removed] = result.splice(startIndex, 1)
+  result.splice(endIndex, 0, removed)
 
-  return result;
-};
+  return result
+}
+
+// ドラッグ対象のスタイル
+const getItemStyle = (isDragging: boolean, draggableStyle: DraggingStyle | NotDraggingStyle | undefined) => ({
+  background: isDragging ? "#757ce8" : "white",
+  ...draggableStyle
+})
+
+// ドラッグ&ドロップの空間　のスタイル
+const getListStyle = (isDraggingOver: boolean) => ({
+  background: isDraggingOver ? "#1769aa" : "lightgrey",
+  padding: "10px"
+})
 
 
 const Home: NextPage = () => {
@@ -75,6 +90,46 @@ const Home: NextPage = () => {
 
 
   return (
+    <>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="droppable">
+          {(provided: DroppableProvided, snapshot:DroppableStateSnapshot) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              style={getListStyle(snapshot.isDraggingOver)}
+            >
+              {items.map((item, index) => (
+                <Draggable
+                  key={item.id}
+                  draggableId={item.id.toString()}
+                  index={index}
+                >
+                  {(provided: DraggableProvided, snapshot:DraggableStateSnapshot) => (
+                    <Card
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      style={getItemStyle(
+                        snapshot.isDragging,
+                        provided.draggableProps.style
+                      )}
+                    >
+                      <CardContent>
+                        <Typography variant="h5" component="div">
+                          {item.content}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </>
     // <div className={styles.container}>
     //   <Head>
     //     <title>Create Next App</title>
@@ -136,30 +191,6 @@ const Home: NextPage = () => {
     //     </a>
     //   </footer>
     // </div>
-        <div>
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="droppable">
-              {(provided: DroppableProvided, snapshot:DroppableStateSnapshot) => (
-                <div {...provided.droppableProps} ref={provided.innerRef}>
-                  {items.map((item, index) => (
-                    <Draggable key={item.id} draggableId={item.id.toString()} index={index}>
-                      {(provided: DraggableProvided, snapshot:DraggableStateSnapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          {item.content}
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-        </div>
   )
 }
 
